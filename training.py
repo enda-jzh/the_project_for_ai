@@ -5,6 +5,7 @@ import torch
 from model.ResNet50 import Bottleneck
 from model.ResNet50 import ResNet50
 from data.transform import val_loader
+from data.transform import test_loader
 import torch.nn.functional as F
 import sklearn.metrics as skm
 import numpy as np
@@ -95,4 +96,30 @@ def train():
                 epoch + 1, np.mean(train_loss), np.mean(val_loss)
             ))
 
+
+def test():
+    model.load_state_dict(torch.load(best_snapshot_path, map_location=DEVICE))
+
+    # test the model
+    true = list()
+    pred = list()
+    with torch.no_grad():
+        for batch in test_loader:
+            x, y = batch
+
+            x = x.to(DEVICE)
+            y = y.to(DEVICE)
+
+            # predict bird species
+            y_pred = model(x)
+
+            true.extend([val.item() for val in y])
+            pred.extend([val.item() for val in y_pred.argmax(dim=-1)])
+
+    # calculate the accuracy
+    test_accuracy = skm.accuracy_score(true, pred)
+    print('Test accuracy: {:.3f}'.format(test_accuracy))
+
+
 train()
+test()
