@@ -28,6 +28,7 @@ scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
 best_snapshot_path = None
 val_acc_avg = list()
 best_val_acc = -1.0
+ModelType = 'ResNet50'
 
 
 def train():
@@ -86,6 +87,11 @@ def train():
             if current_val_acc > best_val_acc:
                 if best_snapshot_path is not None:
                     os.remove(best_snapshot_path)
+
+                best_val_acc = current_val_acc
+                best_snapshot_path = os.path.join(f'model_{ModelType}_class_num={num_classes}_ep={epoch}_acc={best_val_acc}.pt')
+
+                torch.save(model.state_dict(), best_snapshot_path)
 
         # adjust the learning rate
         scheduler.step()
